@@ -15,7 +15,7 @@
         </div>
         <h1 class="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">GitHub 仓库体检工具</h1>
         <p class="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-          输入一个公开的 GitHub 仓库链接，快速查看核心指标与编程语言分布。
+          输入一个公开的 GitHub 仓库链接，快速查看核心指标、语言分布、维护活跃度与 AI 健康度分析。
         </p>
       </header>
 
@@ -30,7 +30,7 @@
             </span>
             <input
               id="repoUrl"
-              type="url"
+              type="text"
               required
               placeholder="请输入公开的 GitHub 仓库链接"
               class="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-3 pl-12 pr-5 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
@@ -45,55 +45,116 @@
             <span id="btnText">开始体检</span>
           </button>
         </form>
+        <p id="errorMessage" class="mt-4 hidden rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700"></p>
+        <div class="mt-5 flex flex-wrap items-center gap-2 text-sm">
+          <span class="text-slate-500">示例：</span>
+          <button type="button" class="sampleRepo rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 transition hover:bg-slate-200" data-url="https://github.com/facebook/react">facebook/react</button>
+          <button type="button" class="sampleRepo rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 transition hover:bg-slate-200" data-url="https://github.com/vuejs/core">vuejs/core</button>
+          <button type="button" class="sampleRepo rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 transition hover:bg-slate-200" data-url="https://github.com/microsoft/vscode">microsoft/vscode</button>
+          <button type="button" class="sampleRepo rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 transition hover:bg-slate-200" data-url="https://github.com/fastapi/fastapi">fastapi/fastapi</button>
+        </div>
       </section>
 
       <section id="resultPanel" class="hidden grid gap-6 lg:grid-cols-5">
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 lg:col-span-2">
-          <div class="mb-6 border-b border-slate-100 pb-5">
-            <p class="text-sm font-medium text-slate-500">当前仓库</p>
-            <a id="repoName" href="#" target="_blank" rel="noreferrer" class="mt-2 block break-all text-2xl font-bold text-slate-950 hover:text-blue-600"></a>
-            <p id="repoDesc" class="mt-3 text-sm leading-6 text-slate-600"></p>
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-            <article class="rounded-2xl border border-amber-100 bg-amber-50 p-5">
-              <p class="text-sm font-medium text-amber-700">Star 数</p>
-              <p id="starsCount" class="mt-2 text-3xl font-bold text-amber-950">0</p>
-            </article>
-            <article class="rounded-2xl border border-blue-100 bg-blue-50 p-5">
-              <p class="text-sm font-medium text-blue-700">Fork 数</p>
-              <p id="forksCount" class="mt-2 text-3xl font-bold text-blue-950">0</p>
-            </article>
-            <article class="rounded-2xl border border-rose-100 bg-rose-50 p-5">
-              <p class="text-sm font-medium text-rose-700">Open Issues 数</p>
-              <p id="issuesCount" class="mt-2 text-3xl font-bold text-rose-950">0</p>
-            </article>
-          </div>
-
-          <div class="mt-6 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-5">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="text-sm font-medium text-emerald-700">AI 综合评分</p>
-                <p class="mt-2 text-4xl font-black text-emerald-950"><span id="aiScore">--</span><span class="text-xl font-bold text-emerald-700">/100</span></p>
+        <div class="space-y-6 lg:col-span-2">
+          <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
+            <div class="mb-6 border-b border-slate-100 pb-5">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="text-sm font-medium text-slate-500">当前仓库</p>
+                <span id="cacheBadge" class="hidden rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">缓存命中</span>
+                <span id="archivedBadge" class="hidden rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">Archived</span>
+                <span id="forkBadge" class="hidden rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700">Fork</span>
               </div>
-              <span class="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm">AI Review</span>
+              <a id="repoName" href="#" target="_blank" rel="noreferrer" class="mt-2 block break-all text-2xl font-bold text-slate-950 hover:text-blue-600"></a>
+              <p id="repoDesc" class="mt-3 text-sm leading-6 text-slate-600"></p>
+              <a id="openRepoBtn" href="#" target="_blank" rel="noreferrer" class="mt-4 inline-flex rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">打开 GitHub 仓库</a>
             </div>
-            <div class="mt-4 border-t border-emerald-100 pt-4">
-              <p class="text-sm font-medium text-emerald-800">健康度分析</p>
-              <p id="aiReview" class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">暂无 AI 分析。</p>
+
+            <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              <article class="rounded-2xl border border-amber-100 bg-amber-50 p-5">
+                <p class="text-sm font-medium text-amber-700">Star 数</p>
+                <p id="starsCount" class="mt-2 text-3xl font-bold text-amber-950">0</p>
+              </article>
+              <article class="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                <p class="text-sm font-medium text-blue-700">Fork 数</p>
+                <p id="forksCount" class="mt-2 text-3xl font-bold text-blue-950">0</p>
+              </article>
+              <article class="rounded-2xl border border-rose-100 bg-rose-50 p-5">
+                <p class="text-sm font-medium text-rose-700">Open Issues 数</p>
+                <p id="issuesCount" class="mt-2 text-3xl font-bold text-rose-950">0</p>
+              </article>
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-xl shadow-emerald-100/60">
+            <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <div class="relative mx-auto h-32 w-32 shrink-0 sm:mx-0">
+                <svg viewBox="0 0 120 120" class="h-full w-full -rotate-90">
+                  <circle cx="60" cy="60" r="52" stroke="#d1fae5" stroke-width="12" fill="none" />
+                  <circle id="scoreCircle" cx="60" cy="60" r="52" stroke="#10b981" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <p class="text-3xl font-black text-emerald-950"><span id="aiScore">--</span></p>
+                  <p class="text-xs font-bold text-emerald-700">/100</p>
+                </div>
+              </div>
+              <div class="flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="text-sm font-medium text-emerald-700">综合健康度评分</p>
+                  <span id="scoreLabel" class="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm">暂不可用</span>
+                  <span id="scoreSource" class="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">AI Review</span>
+                </div>
+                <p id="aiReview" class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-700">暂无健康度分析。</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 lg:col-span-3">
-          <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-              <h2 class="text-xl font-bold text-slate-950">编程语言分布</h2>
-              <p class="mt-1 text-sm text-slate-500">基于 GitHub Languages API 返回的代码字节数统计</p>
+        <div class="space-y-6 lg:col-span-3">
+          <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
+            <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <div>
+                <h2 class="text-xl font-bold text-slate-950">编程语言分布</h2>
+                <p class="mt-1 text-sm text-slate-500">基于 GitHub Languages API 返回的代码字节数统计</p>
+              </div>
+              <span id="mainLanguage" class="w-fit rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">暂无数据</span>
             </div>
-            <span id="mainLanguage" class="w-fit rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">暂无数据</span>
+            <div id="languageChart" class="h-[320px] w-full sm:h-[390px]"></div>
+            <div id="languageList" class="mt-4 grid gap-2 sm:grid-cols-2"></div>
           </div>
-          <div id="languageChart" class="h-[360px] w-full sm:h-[430px]"></div>
+
+          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/60">
+              <p class="text-sm font-medium text-slate-500">最近 Push</p>
+              <p id="pushedAt" class="mt-2 text-lg font-bold text-slate-950">--</p>
+              <p id="daysSincePush" class="mt-1 text-sm text-slate-500">--</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/60">
+              <p class="text-sm font-medium text-slate-500">License</p>
+              <p id="licenseName" class="mt-2 text-lg font-bold text-slate-950">--</p>
+              <p class="mt-1 text-sm text-slate-500">开源许可协议</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/60">
+              <p class="text-sm font-medium text-slate-500">默认分支</p>
+              <p id="defaultBranch" class="mt-2 text-lg font-bold text-slate-950">--</p>
+              <p class="mt-1 text-sm text-slate-500">仓库主开发分支</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/60">
+              <p class="text-sm font-medium text-slate-500">Watchers</p>
+              <p id="watchersCount" class="mt-2 text-lg font-bold text-slate-950">--</p>
+              <p class="mt-1 text-sm text-slate-500">订阅关注人数</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/60">
+              <p class="text-sm font-medium text-slate-500">README</p>
+              <a id="readmeStatus" href="#" target="_blank" rel="noreferrer" class="mt-2 block text-lg font-bold text-slate-950 hover:text-blue-600">--</a>
+              <p class="mt-1 text-sm text-slate-500">项目说明文档</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/60">
+              <p class="text-sm font-medium text-slate-500">Latest Release</p>
+              <a id="releaseStatus" href="#" target="_blank" rel="noreferrer" class="mt-2 block truncate text-lg font-bold text-slate-950 hover:text-blue-600">--</a>
+              <p id="releaseDate" class="mt-1 text-sm text-slate-500">--</p>
+            </article>
+          </div>
         </div>
       </section>
     </main>
@@ -104,20 +165,52 @@
       const checkBtn = document.getElementById('checkBtn');
       const btnSpinner = document.getElementById('btnSpinner');
       const btnText = document.getElementById('btnText');
+      const errorMessage = document.getElementById('errorMessage');
       const resultPanel = document.getElementById('resultPanel');
       const repoName = document.getElementById('repoName');
       const repoDesc = document.getElementById('repoDesc');
+      const openRepoBtn = document.getElementById('openRepoBtn');
       const starsCount = document.getElementById('starsCount');
       const forksCount = document.getElementById('forksCount');
       const issuesCount = document.getElementById('issuesCount');
+      const watchersCount = document.getElementById('watchersCount');
       const aiScore = document.getElementById('aiScore');
       const aiReview = document.getElementById('aiReview');
+      const scoreLabel = document.getElementById('scoreLabel');
+      const scoreSource = document.getElementById('scoreSource');
+      const scoreCircle = document.getElementById('scoreCircle');
       const mainLanguage = document.getElementById('mainLanguage');
+      const languageList = document.getElementById('languageList');
+      const cacheBadge = document.getElementById('cacheBadge');
+      const archivedBadge = document.getElementById('archivedBadge');
+      const forkBadge = document.getElementById('forkBadge');
+      const pushedAt = document.getElementById('pushedAt');
+      const daysSincePush = document.getElementById('daysSincePush');
+      const licenseName = document.getElementById('licenseName');
+      const defaultBranch = document.getElementById('defaultBranch');
+      const readmeStatus = document.getElementById('readmeStatus');
+      const releaseStatus = document.getElementById('releaseStatus');
+      const releaseDate = document.getElementById('releaseDate');
       const chartDom = document.getElementById('languageChart');
       let languageChart = null;
 
       function formatNumber(value) {
         return new Intl.NumberFormat('zh-CN').format(value || 0);
+      }
+
+      function formatDate(value) {
+        if (!value) return '--';
+        return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
+      }
+
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.remove('hidden');
+      }
+
+      function hideError() {
+        errorMessage.textContent = '';
+        errorMessage.classList.add('hidden');
       }
 
       function setLoading(isLoading) {
@@ -133,23 +226,86 @@
         return data.message || '查询失败，请检查仓库链接后重试';
       }
 
+      function normalizeRepoInput(value) {
+        const input = value.trim();
+        if (!input) return '';
+        if (/^[\w.-]+\/[\w.-]+$/.test(input)) return `https://github.com/${input}`;
+        return input;
+      }
+
+      function isValidGithubRepo(value) {
+        return /^(https?:\/\/)?(www\.)?github\.com\/[\w.-]+\/[\w.-]+\/?/.test(value) || /^[\w.-]+\/[\w.-]+$/.test(value);
+      }
+
+      function setScoreCircle(score) {
+        const circumference = 326.7;
+        if (score === null || score === undefined) {
+          scoreCircle.style.strokeDashoffset = circumference;
+          return;
+        }
+        scoreCircle.style.strokeDashoffset = circumference - (Math.max(0, Math.min(100, score)) / 100) * circumference;
+      }
+
       function renderMetrics(data) {
         repoName.textContent = data.full_name || data.name || '未知仓库';
         repoName.href = data.html_url || '#';
         repoDesc.textContent = data.description || '该仓库暂无描述。';
+        openRepoBtn.href = data.html_url || '#';
         starsCount.textContent = formatNumber(data.stars);
         forksCount.textContent = formatNumber(data.forks);
         issuesCount.textContent = formatNumber(data.open_issues);
+        watchersCount.textContent = formatNumber(data.watchers);
         aiScore.textContent = data.ai?.score ?? '--';
-        aiReview.textContent = data.ai?.review || 'AI 评分暂不可用，基础仓库数据已正常返回。';
+        aiReview.textContent = data.ai?.review || '健康度分析暂不可用。';
+        scoreLabel.textContent = data.ai?.label || '暂不可用';
+        scoreSource.textContent = data.ai?.source === 'ai' ? 'AI Review' : '本地估算';
+        setScoreCircle(data.ai?.score);
         mainLanguage.textContent = data.language ? `主语言：${data.language}` : '暂无主语言';
+        cacheBadge.classList.toggle('hidden', !data.cache?.hit);
+        archivedBadge.classList.toggle('hidden', !data.is_archived);
+        forkBadge.classList.toggle('hidden', !data.is_fork);
+        pushedAt.textContent = formatDate(data.pushed_at);
+        daysSincePush.textContent = data.days_since_push === null || data.days_since_push === undefined ? '暂无活跃度数据' : `${data.days_since_push} 天前更新代码`;
+        licenseName.textContent = data.license?.spdx_id || data.license?.name || '无 License';
+        defaultBranch.textContent = data.default_branch || '--';
+
+        readmeStatus.textContent = data.readme?.exists ? '已提供 README' : '未检测到 README';
+        readmeStatus.href = data.readme?.url || '#';
+        readmeStatus.classList.toggle('pointer-events-none', !data.readme?.url);
+
+        releaseStatus.textContent = data.latest_release?.exists ? data.latest_release.tag_name || data.latest_release.name || '已发布' : '暂无 Release';
+        releaseStatus.href = data.latest_release?.url || '#';
+        releaseStatus.classList.toggle('pointer-events-none', !data.latest_release?.url);
+        releaseDate.textContent = data.latest_release?.published_at ? `发布于 ${formatDate(data.latest_release.published_at)}` : '未检测到最新版本';
       }
 
-      function renderLanguageChart(languages) {
-        const chartData = Object.entries(languages || {})
+      function getLanguageChartData(languages) {
+        return Object.entries(languages || {})
           .filter(([, value]) => Number(value) > 0)
           .sort((a, b) => b[1] - a[1])
           .map(([name, value]) => ({ name, value }));
+      }
+
+      function renderLanguageList(chartData) {
+        const total = chartData.reduce((sum, item) => sum + item.value, 0);
+        languageList.innerHTML = '';
+        if (!chartData.length) {
+          languageList.innerHTML = '<p class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">暂无语言数据</p>';
+          return;
+        }
+
+        chartData.slice(0, 8).forEach((item) => {
+          const percent = total ? ((item.value / total) * 100).toFixed(1) : '0.0';
+          const row = document.createElement('div');
+          row.className = 'rounded-2xl bg-slate-50 px-4 py-3';
+          row.innerHTML = `<div class="flex items-center justify-between gap-3 text-sm"><span class="font-semibold text-slate-700">${item.name}</span><span class="text-slate-500">${percent}%</span></div><div class="mt-2 h-2 rounded-full bg-slate-200"><div class="h-2 rounded-full bg-blue-500" style="width:${percent}%"></div></div>`;
+          languageList.appendChild(row);
+        });
+      }
+
+      function renderLanguageChart(languages) {
+        const chartData = getLanguageChartData(languages);
+        renderLanguageList(chartData);
 
         if (!languageChart) {
           languageChart = echarts.init(chartDom);
@@ -169,6 +325,21 @@
                 color: '#475569',
               },
             },
+            graphic: chartData.length
+              ? []
+              : [
+                  {
+                    type: 'text',
+                    left: 'center',
+                    top: 'middle',
+                    style: {
+                      text: '暂无语言数据',
+                      fill: '#64748b',
+                      fontSize: 16,
+                      fontWeight: 700,
+                    },
+                  },
+                ],
             series: [
               {
                 name: '语言分布',
@@ -193,7 +364,7 @@
                     fontWeight: 700,
                   },
                 },
-                data: chartData.length ? chartData : [{ name: '暂无语言数据', value: 0 }],
+                data: chartData,
               },
             ],
           },
@@ -203,13 +374,19 @@
 
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        hideError();
 
-        const repoUrl = repoUrlInput.value.trim();
+        const repoUrl = normalizeRepoInput(repoUrlInput.value);
         if (!repoUrl) {
-          alert('请输入公开的 GitHub 仓库链接');
+          showError('请输入公开的 GitHub 仓库链接');
+          return;
+        }
+        if (!isValidGithubRepo(repoUrl)) {
+          showError('请输入正确的 GitHub 仓库地址，例如：https://github.com/owner/repo');
           return;
         }
 
+        repoUrlInput.value = repoUrl;
         setLoading(true);
 
         try {
@@ -239,10 +416,17 @@
           setTimeout(() => languageChart.resize(), 0);
         } catch (error) {
           resultPanel.classList.add('hidden');
-          alert(error.message || '请求失败，请稍后重试');
+          showError(error.message || '请求失败，请稍后重试');
         } finally {
           setLoading(false);
         }
+      });
+
+      document.querySelectorAll('.sampleRepo').forEach((button) => {
+        button.addEventListener('click', () => {
+          repoUrlInput.value = button.dataset.url;
+          form.requestSubmit();
+        });
       });
 
       window.addEventListener('resize', () => {
